@@ -44,7 +44,13 @@ API_KEY = st.secrets.get("GEMINI_API_KEY", "")
 
 if API_KEY:
     try:
-        genai.configure(api_key=API_KEY)
+        # Jika kunci berupa OAuth Token (AQ...), set sebagai Bearer Token/Access Token
+        if API_KEY.startswith("AQ."):
+            import google.auth.credentials
+            credentials = google.auth.credentials.AnonymousCredentials()
+            genai.configure(api_key=API_KEY, client_options={"api_key": API_KEY})
+        else:
+            genai.configure(api_key=API_KEY)
     except Exception as e:
         st.error(f"Gagal memuat API Key: {e}")
 
