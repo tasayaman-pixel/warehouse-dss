@@ -350,12 +350,12 @@ with tabs[3]:
             
             tradeoff_results.append({
                 'Skenario': sc['name'],
-                'Loading Bay': sc['num_bays'],
-                'Forklift': sc['num_forklifts'],
+                'Loading Bay': int(sc['num_bays']),
+                'Forklift': int(sc['num_forklifts']),
                 'Rata-Rata Antrean (Menit)': round(sim_sc['avg_wait_min'], 1),
-                'Denda Demurrage (Rp)': demurrage,
-                'Biaya Investasi (Rp)': invest_cost,
-                'Total Biaya Operasional (Rp)': demurrage + invest_cost
+                'Denda Demurrage (Rp)': int(round(demurrage)),
+                'Biaya Investasi (Rp)': int(round(invest_cost)),
+                'Total Biaya Operasional (Rp)': int(round(demurrage + invest_cost))
             })
             
         df_results = pd.DataFrame(tradeoff_results)
@@ -404,11 +404,12 @@ with tabs[3]:
         
         st.markdown("---")
         
-        # 4. Export Executive Summary (CSV Download)
+        # 4. Export Executive Summary (CSV Download Rapi untuk Excel)
         st.subheader("📥 Export Executive Summary Report")
         st.write("Unduh hasil perbandingan skenario dan rekomendasi DSS untuk kebutuhan dokumentasi atau pembahasan manajemen.")
         
-        csv_data = df_results.to_csv(index=False).encode('utf-8')
+        # Menggunakan sep=';' dan encoding='utf-8-sig' agar Excel langsung memisah kolom secara rapi
+        csv_data = df_results.to_csv(index=False, sep=';').encode('utf-8-sig')
         
         st.download_button(
             label="📄 Download Executive Summary Laporan (CSV)",
