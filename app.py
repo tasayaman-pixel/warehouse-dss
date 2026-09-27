@@ -10,29 +10,114 @@ import json
 import re
 
 # ==========================================
-# 1. SETUP HALAMAN & CUSTOM CSS
+# 1. SETUP HALAMAN & MODERN CUSTOM CSS
 # ==========================================
 st.set_page_config(
-    page_title="DSS Bottleneck Gudang & AI Scenario Generator",
+    page_title="Warehouse Bottleneck DSS",
     page_icon="🏭",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
+# Custom Styling untuk Tampilan SaaS Modern
 st.markdown("""
 <style>
-    .metric-card {
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        padding: 15px;
-        border-left: 5px solid #0066cc;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
     }
+    
+    .header-box {
+        background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+        padding: 24px 32px;
+        border-radius: 12px;
+        color: white;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    .header-box h1 {
+        color: #F8FAFC !important;
+        font-weight: 700;
+        font-size: 28px;
+        margin: 0;
+    }
+    .header-box p {
+        color: #94A3B8;
+        font-size: 14px;
+        margin-top: 6px;
+        margin-bottom: 0;
+    }
+    
+    .custom-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .metric-container {
+        background: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-top: 4px solid #2563EB;
+        border-radius: 8px;
+        padding: 16px;
+        text-align: center;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .metric-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748B;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .metric-value {
+        font-size: 22px;
+        font-weight: 700;
+        color: #0F172A;
+        margin-top: 6px;
+    }
+    
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        height: 48px;
+        white-space: pre-wrap;
+        background-color: #F1F5F9;
+        border-radius: 8px;
+        color: #475569;
+        font-weight: 600;
+        padding: 10px 16px;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: #2563EB !important;
+        color: white !important;
+    }
+    
     .stButton>button {
-        width: 100%;
-        border-radius: 5px;
-        font-weight: bold;
+        border-radius: 8px;
+        font-weight: 600;
+        height: 44px;
+        transition: all 0.2s ease;
+    }
+    
+    .streamlit-expanderHeader {
+        font-weight: 600;
+        color: #1E293B;
     }
 </style>
+""", unsafe_allow_html=True)
+
+# Header Utama
+st.markdown("""
+<div class="header-box">
+    <h1>🏭 Warehouse Bottleneck Decision Support System (DSS)</h1>
+    <p>Platform Analisis Antrean Stokhastik Gudang & Generator Skenario Intervensi Berbasis AI Gemini Flash</p>
+</div>
 """, unsafe_allow_html=True)
 
 # ==========================================
@@ -47,6 +132,7 @@ if API_KEY:
         st.error(f"Gagal memuat API Key: {e}")
 
 def get_gemini_model():
+    # Menggunakan endpoint Gemini Flash versi terbaru
     return genai.GenerativeModel('models/gemini-3.6-flash')
 
 # ==========================================
@@ -188,40 +274,53 @@ def run_warehouse_simulation(arrival_rate, unloading_time_mean, num_bays, num_fo
     }
 
 # ==========================================
-# 5. TAMPILAN UTAMA STREAMLIT
+# 5. MODUL UTAMA DENGAN TAB NAVIGASI
 # ==========================================
-st.title("🏭 Warehouse Bottleneck Decision Support System (DSS)")
-st.caption("Aplikasi Sistem Pendukung Keputusan Berbasis Simulasi SimPy & AI Gemini")
-
-tabs = st.tabs(["📌 Modul 1: Parameter & AI Parser", "📊 Modul 2: Simulasi & Bottleneck", "🤖 Modul 3: AI Scenario Generator", "⚖️ Modul 4: Trade-off Analytics & Report"])
+tabs = st.tabs([
+    "📌 Modul 1: Parameter & AI Parser", 
+    "📊 Modul 2: Simulasi & Bottleneck", 
+    "🤖 Modul 3: AI Scenario Generator", 
+    "⚖️ Modul 4: Trade-off Analytics & Report"
+])
 
 # ------------------------------------------
 # TAB 1: PARAMETER INPUT
 # ------------------------------------------
 with tabs[0]:
-    st.header("Ekstraksi Parameter Operasional")
+    st.subheader("⚙️ Ekstraksi & Konfigurasi Parameter Operasional")
     
-    col_ai, col_manual = st.columns([1, 1])
+    col_ai, col_manual = st.columns([1, 1], gap="large")
     
     with col_ai:
-        st.subheader("🤖 Ekstraksi Otomatis via AI")
+        st.markdown("""
+        <div class="custom-card">
+            <h4 style="margin-top:0; color:#1E293B;">🤖 Ekstraksi Otomatis via AI Gemini Flash</h4>
+            <p style="font-size:13px; color:#64748B;">Ketik atau tempelkan narasi kondisi operasional lapangan di bawah ini:</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
         prompt_input = st.text_area(
-            "Masukkan Deskripsi Kondisi Lapangan / Logistik:",
+            "Deskripsi Kondisi Lapangan / Logistik:",
             value="Saat ini rata-rata kedatangan truk adalah 8 truk per jam. Proses pembongkaran muatan memakan waktu sekitar 25 menit per truk. Gudang saat ini memiliki 2 loading bay dan disokong oleh 3 unit forklift. Denda demurrage yang berlaku adalah Rp 150.000 per jam per truk.",
-            height=130
+            height=140
         )
         
-        if st.button("🤖 Ekstrak Parameter via AI"):
-            with st.spinner("AI sedang menguraikan data logistik..."):
+        if st.button("🤖 Ekstrak Parameter via AI", type="primary"):
+            with st.spinner("AI Gemini Flash sedang menguraikan data logistik..."):
                 parsed_data, err = extract_parameters_to_json(prompt_input)
                 if err:
                     st.error(f"Error Ekstraksi AI: {err}")
                 else:
                     st.session_state['parsed_params'] = parsed_data
-                    st.success("Berhasil mengekstraksi parameter!")
+                    st.success("✅ Parameter berhasil diekstraksi dan diterapkan!")
 
     with col_manual:
-        st.subheader("⚙️ Validasi & Setup Parameter")
+        st.markdown("""
+        <div class="custom-card">
+            <h4 style="margin-top:0; color:#1E293B;">🎛️ Validasi & Setup Manual Parameter</h4>
+            <p style="font-size:13px; color:#64748B;">Nilai di bawah ini otomatis terisi dari AI atau bisa disesuaikan manual:</p>
+        </div>
+        """, unsafe_allow_html=True)
         
         default_params = st.session_state.get('parsed_params', {
             "arrival_rate": 8.0,
@@ -231,10 +330,14 @@ with tabs[0]:
             "demurrage_rate": 150000
         })
         
-        arr_rate = st.number_input("Kedatangan Truk (truk/jam):", min_value=1.0, max_value=50.0, value=float(default_params.get("arrival_rate", 8.0)))
-        unl_time = st.number_input("Rata-rata Waktu Unloading (menit):", min_value=5.0, max_value=180.0, value=float(default_params.get("unloading_time_mean", 25.0)))
-        n_bays = st.number_input("Jumlah Loading Bay:", min_value=1, max_value=20, value=int(default_params.get("num_bays", 2)))
-        n_forks = st.number_input("Jumlah Forklift:", min_value=1, max_value=20, value=int(default_params.get("num_forklifts", 3)))
+        c1, c2 = st.columns(2)
+        with c1:
+            arr_rate = st.number_input("Kedatangan Truk (truk/jam):", min_value=1.0, max_value=50.0, value=float(default_params.get("arrival_rate", 8.0)))
+            unl_time = st.number_input("Rata-rata Waktu Unloading (menit):", min_value=5.0, max_value=180.0, value=float(default_params.get("unloading_time_mean", 25.0)))
+        with c2:
+            n_bays = st.number_input("Jumlah Loading Bay:", min_value=1, max_value=20, value=int(default_params.get("num_bays", 2)))
+            n_forks = st.number_input("Jumlah Forklift:", min_value=1, max_value=20, value=int(default_params.get("num_forklifts", 3)))
+        
         demurrage_rate = st.number_input("Tarif Denda Demurrage (Rp/jam/truk):", min_value=0, value=int(default_params.get("demurrage_rate", 150000)), step=10000)
 
         st.session_state['active_params'] = {
@@ -249,77 +352,109 @@ with tabs[0]:
 # TAB 2: SIMULASI & BOTTLENECK
 # ------------------------------------------
 with tabs[1]:
-    st.header("Hasil Simulasi Operasional Gudang (24 Jam)")
+    st.subheader("📊 Hasil Simulasi Operasional Gudang (24 Jam)")
     
     if 'active_params' in st.session_state:
         p = st.session_state['active_params']
         
-        if st.button("🚀 Jalankan Simulasi Eksisting"):
-            sim_res = run_warehouse_simulation(
-                p['arrival_rate'], p['unloading_time_mean'], p['num_bays'], p['num_forklifts']
-            )
-            st.session_state['base_sim_result'] = sim_res
-            
-        if 'base_sim_result' in st.session_state:
-            res = st.session_state['base_sim_result']
-            
-            excess_wait_hours = sum([max(0, w - 30) for w in res['raw_waiting_times']]) / 60.0
-            total_demurrage_cost = excess_wait_hours * p['demurrage_rate']
-            st.session_state['base_demurrage'] = total_demurrage_cost
-            
-            c1, c2, c3, c4 = st.columns(4)
-            c1.metric("Total Truk Melayani", f"{res['total_trucks']} Truk")
-            c2.metric("Rata-rata Antrean", f"{res['avg_wait_min']:.1f} Menit")
-            c3.metric("Waktu Tunggu Maksimal", f"{res['max_wait_min']:.1f} Menit")
-            c4.metric("Est. Denda Demurrage", f"Rp {total_demurrage_cost:,.0f}")
-            
-            st.subheader("📈 Dinamika Panjang Antrean Truk (24 Jam)")
-            df_queue = json.loads(json.dumps(res['queue_log']))
-            fig_q = px.line(
-                df_queue, x=[q['time']/60.0 for q in df_queue], y=[q['queue_length'] for q in df_queue],
-                labels={'x': 'Jam Simulasi', 'y': 'Jumlah Truk Mengantre'},
-                title="Panjang Antrean Truk Sepanjang Hari"
-            )
-            st.plotly_chart(fig_q, use_container_width=True)
+        st.button("🚀 Jalankan Simulasi Eksisting", type="primary")
+        
+        sim_res = run_warehouse_simulation(
+            p['arrival_rate'], p['unloading_time_mean'], p['num_bays'], p['num_forklifts']
+        )
+        st.session_state['base_sim_result'] = sim_res
+        
+        res = st.session_state['base_sim_result']
+        excess_wait_hours = sum([max(0, w - 30) for w in res['raw_waiting_times']]) / 60.0
+        total_demurrage_cost = excess_wait_hours * p['demurrage_rate']
+        st.session_state['base_demurrage'] = total_demurrage_cost
+        
+        m1, m2, m3, m4 = st.columns(4)
+        m1.markdown(f"""
+        <div class="metric-container">
+            <div class="metric-label">Total Truk Dilayani</div>
+            <div class="metric-value">{res['total_trucks']} Truk</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        m2.markdown(f"""
+        <div class="metric-container" style="border-top-color: #F59E0B;">
+            <div class="metric-label">Rata-Rata Antrean</div>
+            <div class="metric-value">{res['avg_wait_min']:.1f} Menit</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        m3.markdown(f"""
+        <div class="metric-container" style="border-top-color: #EF4444;">
+            <div class="metric-label">Waktu Tunggu Maksimal</div>
+            <div class="metric-value">{res['max_wait_min']:.1f} Menit</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        m4.markdown(f"""
+        <div class="metric-container" style="border-top-color: #DC2626;">
+            <div class="metric-label">Est. Denda Demurrage</div>
+            <div class="metric-value">Rp {total_demurrage_cost:,.0f}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        df_queue = json.loads(json.dumps(res['queue_log']))
+        fig_q = px.line(
+            df_queue, 
+            x=[q['time']/60.0 for q in df_queue], 
+            y=[q['queue_length'] for q in df_queue],
+            labels={'x': 'Jam Simulasi (0-24)', 'y': 'Jumlah Truk Mengantre'},
+            title="📈 Dinamika Fluktuasi Panjang Antrean Truk Sepanjang Hari"
+        )
+        fig_q.update_traces(line_color='#2563EB', line_width=2.5)
+        fig_q.update_layout(
+            template="plotly_white",
+            height=380,
+            margin=dict(l=20, r=20, t=50, b=20)
+        )
+        st.plotly_chart(fig_q, use_container_width=True)
 
 # ------------------------------------------
 # TAB 3: AI SCENARIO GENERATOR
 # ------------------------------------------
 with tabs[2]:
-    st.header("Usulan Skenario Perbaikan Berbasis AI")
+    st.subheader("🤖 Generator Skenario Perbaikan Berbasis AI Gemini Flash")
     
     if 'base_sim_result' not in st.session_state:
-        st.warning("Silakan jalankan simulasi eksisting di Modul 2 terlebih dahulu!")
+        st.info("Silakan jalankan simulasi eksisting di Modul 2 terlebih dahulu.")
     else:
         p = st.session_state['active_params']
         base_demurrage = st.session_state.get('base_demurrage', 0)
         
-        if st.button("🤖 Buat Skenario Usulan Otomatis via AI"):
-            with st.spinner("AI sedang merancang skenario efisiensi..."):
+        if st.button("🤖 Buat Skenario Usulan Otomatis via AI", type="primary"):
+            with st.spinner("AI Gemini Flash sedang menganalisis titik bottleneck & merancang skenario..."):
                 scenarios, err = generate_ai_scenarios(p, base_demurrage)
                 if err:
                     st.error(f"Error AI Skenario: {err}")
                 else:
                     st.session_state['ai_scenarios'] = scenarios.get('scenarios', [])
-                    st.success("Skenario berhasil dibuat!")
+                    st.success("✨ Skenario berhasil dirancang oleh AI!")
 
         if 'ai_scenarios' in st.session_state:
+            st.markdown("<br>", unsafe_allow_html=True)
             for idx, sc in enumerate(st.session_state['ai_scenarios']):
-                with st.expander(f"📌 {sc['name']}", expanded=True):
+                with st.expander(f"📌 Skenario {idx+1}: {sc['name']}", expanded=True):
                     st.write(f"**Rasional Teknis:** {sc['rationale']}")
                     c_s1, c_s2, c_s3 = st.columns(3)
-                    c_s1.write(f"**Loading Bay:** {sc['num_bays']} unit (+{sc['num_bays'] - p['num_bays']})")
-                    c_s2.write(f"**Forklift:** {sc['num_forklifts']} unit (+{sc['num_forklifts'] - p['num_forklifts']})")
-                    c_s3.write(f"**Est. Biaya Investasi/Sewa:** Rp {(sc.get('bay_cost_per_day', 0) + sc.get('forklift_cost_per_day', 0)):,.0f}/hari")
+                    c_s1.info(f"**Loading Bay:** {sc['num_bays']} unit (+{sc['num_bays'] - p['num_bays']})")
+                    c_s2.info(f"**Forklift:** {sc['num_forklifts']} unit (+{sc['num_forklifts'] - p['num_forklifts']})")
+                    c_s3.warning(f"**Est. Biaya Investasi:** Rp {(sc.get('bay_cost_per_day', 0) + sc.get('forklift_cost_per_day', 0)):,.0f}/hari")
 
 # ------------------------------------------
 # TAB 4: TRADE-OFF ANALYTICS & EXPORT REPORT
 # ------------------------------------------
 with tabs[3]:
-    st.header("Analisis Trade-Off & Executive Summary Report")
+    st.subheader("⚖️ Analisis Trade-Off Finansial & Executive Summary")
     
     if 'ai_scenarios' not in st.session_state or 'base_sim_result' not in st.session_state:
-        st.info("Jalankan simulasi dasar (Modul 2) dan buat skenario AI (Modul 3) terlebih dahulu untuk melihat analisis trade-off.")
+        st.info("Jalankan simulasi dasar (Modul 2) dan buat skenario AI (Modul 3) terlebih dahulu untuk melihat analisis komparatif.")
     else:
         p = st.session_state['active_params']
         base_demurrage = st.session_state.get('base_demurrage', 0)
@@ -330,12 +465,12 @@ with tabs[3]:
         # Skenario Eksisting
         tradeoff_results.append({
             'Skenario': 'Kondisi Eksisting',
-            'Loading Bay': p['num_bays'],
-            'Forklift': p['num_forklifts'],
+            'Loading Bay': int(p['num_bays']),
+            'Forklift': int(p['num_forklifts']),
             'Rata-Rata Antrean (Menit)': round(base_res['avg_wait_min'], 1),
-            'Denda Demurrage (Rp)': base_demurrage,
+            'Denda Demurrage (Rp)': int(round(base_demurrage)),
             'Biaya Investasi (Rp)': 0,
-            'Total Biaya Operasional (Rp)': base_demurrage
+            'Total Biaya Operasional (Rp)': int(round(base_demurrage))
         })
         
         # Simulasi Skenario Usulan AI
@@ -360,25 +495,30 @@ with tabs[3]:
             
         df_results = pd.DataFrame(tradeoff_results)
         
-        # 1. Visualisasi Stacked Bar Chart Total Biaya
-        st.subheader("📊 Perbandingan Trade-Off Total Biaya (Biaya Investasi vs Denda)")
+        # 1. Stacked Bar Chart Total Biaya
+        st.markdown("#### 📊 Perbandingan Total Biaya Operasional")
         sc_names = [r['Skenario'] for r in tradeoff_results]
+        
         fig_tradeoff = go.Figure(data=[
-            go.Bar(name='Denda Demurrage (Rp)', x=sc_names, y=[r['Denda Demurrage (Rp)'] for r in tradeoff_results]),
-            go.Bar(name='Biaya Investasi Resource (Rp)', x=sc_names, y=[r['Biaya Investasi (Rp)'] for r in tradeoff_results])
+            go.Bar(name='Denda Demurrage (Rp)', x=sc_names, y=[r['Denda Demurrage (Rp)'] for r in tradeoff_results], marker_color='#EF4444'),
+            go.Bar(name='Biaya Investasi Resource (Rp)', x=sc_names, y=[r['Biaya Investasi (Rp)'] for r in tradeoff_results], marker_color='#10B981')
         ])
-        fig_tradeoff.update_layout(barmode='stack', title="Trade-Off Finansial Antar Skenario Operasional")
+        fig_tradeoff.update_layout(
+            barmode='stack',
+            template="plotly_white",
+            height=380,
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            margin=dict(l=20, r=20, t=40, b=20)
+        )
         st.plotly_chart(fig_tradeoff, use_container_width=True)
         
-        st.markdown("---")
-        
-        # 2. Visualisasi Breakdown Biaya (Donut Charts)
-        st.subheader("🍩 Breakdown Komponen Biaya per Skenario")
+        # 2. Donut Charts Breakdown Biaya
+        st.markdown("#### 🍩 Breakdown Struktur Biaya per Skenario")
         donut_cols = st.columns(len(tradeoff_results))
         
         for idx, row in enumerate(tradeoff_results):
             df_breakdown = pd.DataFrame({
-                "Komponen Biaya": ["Denda Demurrage", "Investasi Resource"],
+                "Komponen Biaya": ["Denda Demurrage", "Biaya Investasi"],
                 "Nominal": [row['Denda Demurrage (Rp)'], row['Biaya Investasi (Rp)']]
             })
             
@@ -386,35 +526,32 @@ with tabs[3]:
                 df_breakdown,
                 values="Nominal",
                 names="Komponen Biaya",
-                hole=0.45,
+                hole=0.5,
                 title=f"<b>{row['Skenario']}</b>",
-                color_discrete_sequence=["#dc3545", "#28a745"] if row['Biaya Investasi (Rp)'] > 0 else ["#dc3545", "#6c757d"]
+                color_discrete_sequence=["#EF4444", "#10B981"] if row['Biaya Investasi (Rp)'] > 0 else ["#EF4444", "#94A3B8"]
             )
             fig_donut.update_traces(textposition='inside', textinfo='percent')
-            fig_donut.update_layout(showlegend=True, height=280, margin=dict(t=40, b=10, l=10, r=10))
+            fig_donut.update_layout(showlegend=False, height=260, margin=dict(t=40, b=10, l=10, r=10))
             
             with donut_cols[idx]:
                 st.plotly_chart(fig_donut, use_container_width=True)
 
         st.markdown("---")
         
-        # 3. Tabel Perbandingan Keputusan DSS
-        st.subheader("📋 Tabel Keputusan Decision Support System")
+        # 3. Tabel Keputusan DSS
+        st.markdown("#### 📋 Tabel Matriks Keputusan DSS")
         st.dataframe(df_results, use_container_width=True)
         
-        st.markdown("---")
+        st.markdown("<br>", unsafe_allow_html=True)
         
-        # 4. Export Executive Summary (CSV Download Rapi untuk Excel)
-        st.subheader("📥 Export Executive Summary Report")
-        st.write("Unduh hasil perbandingan skenario dan rekomendasi DSS untuk kebutuhan dokumentasi atau pembahasan manajemen.")
-        
-        # Menggunakan sep=';' dan encoding='utf-8-sig' agar Excel langsung memisah kolom secara rapi
+        # 4. Export CSV Rapi untuk Excel
+        st.markdown("#### 📥 Unduh Laporan Lanjutan")
         csv_data = df_results.to_csv(index=False, sep=';').encode('utf-8-sig')
         
         st.download_button(
-            label="📄 Download Executive Summary Laporan (CSV)",
+            label="📄 Download Executive Summary (CSV Rapi)",
             data=csv_data,
             file_name="Executive_Summary_Bottleneck_Gudang.csv",
             mime="text/csv",
-            help="Klik untuk mengunduh laporan perbandingan skenario DSS dalam format file CSV."
+            help="Unduh tabel hasil analisis DSS yang rapi dan terformat untuk Microsoft Excel."
         )
