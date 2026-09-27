@@ -46,7 +46,7 @@ if API_KEY:
         st.error(f"Gagal memuat API Key: {e}")
 
 def get_gemini_model():
-    return genai.GenerativeModel('gemini-1.5-flash')
+    return genai.GenerativeModel('gemini-3.6-flash')
 
 # ==========================================
 # 3. HELPER AI PARSER & SCENARIO GENERATOR
