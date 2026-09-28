@@ -125,7 +125,6 @@ if API_KEY:
         st.error(f"Gagal memuat API Key: {e}")
 
 def get_gemini_model():
-    # Menggunakan endpoint Gemini Flash versi terbaru
     return genai.GenerativeModel('models/gemini-3.6-flash')
 
 def extract_parameters_to_json(prompt_text):
@@ -182,8 +181,6 @@ def generate_ai_scenarios(base_params, base_demurrage):
                 "name": "Nama Skenario 1",
                 "num_bays": int,
                 "num_forklifts": int,
-                "bay_cost_per_day": int (biaya sewa/investasi bay per hari dalam Rp),
-                "forklift_cost_per_day": int (biaya sewa/investasi forklift per hari dalam Rp),
                 "rationale": "Penjelasan singkat alasan teknis"
             }}
         ]
@@ -194,7 +191,20 @@ def generate_ai_scenarios(base_params, base_demurrage):
         response = model.generate_content(prompt)
         match = re.search(r'\{.*\}', response.text.strip(), re.DOTALL)
         if match:
-            return json.loads(match.group(0)), None
+            data = json.loads(match.group(0))
+            
+            # --- RUMUS BIAYA INVESTASI DINAMIS ---
+            BIAYA_PER_BAY = 250000       # Rp 250.000 / bay / hari
+            BIAYA_PER_FORKLIFT = 150000  # Rp 150.000 / forklift / hari
+
+            for sc in data.get('scenarios', []):
+                delta_bay = max(0, sc['num_bays'] - base_params['num_bays'])
+                delta_forklift = max(0, sc['num_forklifts'] - base_params['num_forklifts'])
+                
+                sc['bay_cost_per_day'] = delta_bay * BIAYA_PER_BAY
+                sc['forklift_cost_per_day'] = delta_forklift * BIAYA_PER_FORKLIFT
+
+            return data, None
         return None, "Format respon skenario AI tidak valid."
     except Exception as e:
         return None, str(e)
@@ -420,7 +430,9 @@ with tabs[2]:
                     c_s1, c_s2, c_s3 = st.columns(3)
                     c_s1.info(f"**Loading Bay:** {sc['num_bays']} unit (+{sc['num_bays'] - p['num_bays']})")
                     c_s2.info(f"**Forklift:** {sc['num_forklifts']} unit (+{sc['num_forklifts'] - p['num_forklifts']})")
-                    c_s3.warning(f"**Est. Biaya Investasi:** Rp {(sc.get('bay_cost_per_day', 0) + sc.get('forklift_cost_per_day', 0)):,.0f}/hari")
+                    
+                    total_invest = sc.get('bay_cost_per_day', 0) + sc.get('forklift_cost_per_day', 0)
+                    c_s3.warning(f"**Est. Biaya Investasi:** Rp {total_invest:,.0f}/hari")
 
 with tabs[3]:
     st.subheader("⚖️ Analisis Trade-Off Finansial & Executive Summary")
@@ -452,7 +464,7 @@ with tabs[3]:
             
             excess_hours = sum([max(0, w - 30) for w in sim_sc['raw_waiting_times']]) / 60.0
             demurrage = excess_hours * p['demurrage_rate']
-            invest_cost = sc.get('bay_cost_per_day', 500000) + sc.get('forklift_cost_per_day', 300000)
+            invest_cost = sc.get('bay_cost_per_day', 0) + sc.get('forklift_cost_per_day', 0)
             
             tradeoff_results.append({
                 'Skenario': sc['name'],
