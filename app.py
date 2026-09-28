@@ -9,9 +9,6 @@ import google.generativeai as genai
 import json
 import re
 
-# ==========================================
-# 1. SETUP HALAMAN & MODERN CUSTOM CSS
-# ==========================================
 st.set_page_config(
     page_title="Warehouse Bottleneck DSS",
     page_icon="🏭",
@@ -19,7 +16,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom Styling untuk Tampilan SaaS Modern
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -120,9 +116,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ==========================================
-# 2. KONFIGURASI GEMINI API
-# ==========================================
 API_KEY = st.secrets.get("GEMINI_API_KEY", "")
 
 if API_KEY:
@@ -135,9 +128,6 @@ def get_gemini_model():
     # Menggunakan endpoint Gemini Flash versi terbaru
     return genai.GenerativeModel('models/gemini-3.6-flash')
 
-# ==========================================
-# 3. HELPER AI PARSER & SCENARIO GENERATOR
-# ==========================================
 def extract_parameters_to_json(prompt_text):
     if not API_KEY:
         return None, "API Key belum dikonfigurasi di Streamlit Secrets."
@@ -209,9 +199,6 @@ def generate_ai_scenarios(base_params, base_demurrage):
     except Exception as e:
         return None, str(e)
 
-# ==========================================
-# 4. ENGINE SIMULASI SIMPY
-# ==========================================
 def run_warehouse_simulation(arrival_rate, unloading_time_mean, num_bays, num_forklifts, sim_hours=24):
     env = simpy.Environment()
     
@@ -273,9 +260,6 @@ def run_warehouse_simulation(arrival_rate, unloading_time_mean, num_bays, num_fo
         'raw_waiting_times': waiting_times
     }
 
-# ==========================================
-# 5. MODUL UTAMA DENGAN TAB NAVIGASI
-# ==========================================
 tabs = st.tabs([
     "📌 Modul 1: Parameter & AI Parser", 
     "📊 Modul 2: Simulasi & Bottleneck", 
@@ -283,9 +267,6 @@ tabs = st.tabs([
     "⚖️ Modul 4: Trade-off Analytics & Report"
 ])
 
-# ------------------------------------------
-# TAB 1: PARAMETER INPUT
-# ------------------------------------------
 with tabs[0]:
     st.subheader("⚙️ Ekstraksi & Konfigurasi Parameter Operasional")
     
@@ -348,9 +329,6 @@ with tabs[0]:
             'demurrage_rate': demurrage_rate
         }
 
-# ------------------------------------------
-# TAB 2: SIMULASI & BOTTLENECK
-# ------------------------------------------
 with tabs[1]:
     st.subheader("📊 Hasil Simulasi Operasional Gudang (24 Jam)")
     
@@ -416,9 +394,6 @@ with tabs[1]:
         )
         st.plotly_chart(fig_q, use_container_width=True)
 
-# ------------------------------------------
-# TAB 3: AI SCENARIO GENERATOR
-# ------------------------------------------
 with tabs[2]:
     st.subheader("🤖 Generator Skenario Perbaikan Berbasis AI Gemini Flash")
     
@@ -447,9 +422,6 @@ with tabs[2]:
                     c_s2.info(f"**Forklift:** {sc['num_forklifts']} unit (+{sc['num_forklifts'] - p['num_forklifts']})")
                     c_s3.warning(f"**Est. Biaya Investasi:** Rp {(sc.get('bay_cost_per_day', 0) + sc.get('forklift_cost_per_day', 0)):,.0f}/hari")
 
-# ------------------------------------------
-# TAB 4: TRADE-OFF ANALYTICS & EXPORT REPORT
-# ------------------------------------------
 with tabs[3]:
     st.subheader("⚖️ Analisis Trade-Off Finansial & Executive Summary")
     
@@ -473,7 +445,6 @@ with tabs[3]:
             'Total Biaya Operasional (Rp)': int(round(base_demurrage))
         })
         
-        # Simulasi Skenario Usulan AI
         for sc in st.session_state['ai_scenarios']:
             sim_sc = run_warehouse_simulation(
                 p['arrival_rate'], p['unloading_time_mean'], sc['num_bays'], sc['num_forklifts']
@@ -495,7 +466,6 @@ with tabs[3]:
             
         df_results = pd.DataFrame(tradeoff_results)
         
-        # 1. Stacked Bar Chart Total Biaya
         st.markdown("#### 📊 Perbandingan Total Biaya Operasional")
         sc_names = [r['Skenario'] for r in tradeoff_results]
         
@@ -512,7 +482,6 @@ with tabs[3]:
         )
         st.plotly_chart(fig_tradeoff, use_container_width=True)
         
-        # 2. Donut Charts Breakdown Biaya
         st.markdown("#### 🍩 Breakdown Struktur Biaya per Skenario")
         donut_cols = st.columns(len(tradeoff_results))
         
@@ -538,13 +507,11 @@ with tabs[3]:
 
         st.markdown("---")
         
-        # 3. Tabel Keputusan DSS
         st.markdown("#### 📋 Tabel Matriks Keputusan DSS")
         st.dataframe(df_results, use_container_width=True)
         
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # 4. Export CSV Rapi untuk Excel
         st.markdown("#### 📥 Unduh Laporan Lanjutan")
         csv_data = df_results.to_csv(index=False, sep=';').encode('utf-8-sig')
         
