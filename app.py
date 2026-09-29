@@ -446,7 +446,6 @@ with tabs[3]:
         
         tradeoff_results = []
         
-        # Skenario Eksisting
         tradeoff_results.append({
             'Skenario': 'Kondisi Eksisting',
             'Loading Bay': int(p['num_bays']),
@@ -503,13 +502,18 @@ with tabs[3]:
                 "Nominal": [row['Denda Demurrage (Rp)'], row['Biaya Investasi (Rp)']]
             })
             
+            # KODE BARU (Warna Terkunci Presisi):
             fig_donut = px.pie(
                 df_breakdown,
                 values="Nominal",
                 names="Komponen Biaya",
                 hole=0.5,
                 title=f"<b>{row['Skenario']}</b>",
-                color_discrete_sequence=["#EF4444", "#10B981"] if row['Biaya Investasi (Rp)'] > 0 else ["#EF4444", "#94A3B8"]
+                color="Komponen Biaya",
+                color_discrete_map={
+                    "Denda Demurrage": "#EF4444",   # Merah untuk Denda
+                    "Biaya Investasi": "#10B981"    # Hijau untuk Investasi
+                }
             )
             fig_donut.update_traces(textposition='inside', textinfo='percent')
             fig_donut.update_layout(showlegend=False, height=260, margin=dict(t=40, b=10, l=10, r=10))
