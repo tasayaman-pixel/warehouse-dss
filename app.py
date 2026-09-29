@@ -125,7 +125,7 @@ if API_KEY:
         st.error(f"Gagal memuat API Key: {e}")
 
 def get_gemini_model():
-    return genai.GenerativeModel('models/gemini-1.5-flash')
+    return genai.GenerativeModel('models/gemini-3.8-flash')
 
 def extract_parameters_to_json(prompt_text):
     if not API_KEY:
